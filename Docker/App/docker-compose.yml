@@ -1,0 +1,21 @@
+services:
+  postgres-service:
+    image: postgres:17.5-alpine3.21
+    hostname: postgres-service
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=training
+    networks:
+      users-network:
+      #- ipv4_address: 192.168.10.11
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./scripts:/docker-entrypoint-initdb.d:ro
+networks:
+  users-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.10.0/24
