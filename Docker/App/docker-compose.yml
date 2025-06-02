@@ -13,6 +13,15 @@ services:
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
       - ./scripts:/docker-entrypoint-initdb.d:ro
+  users-service:
+    image: landrzejewski/users-service
+    restart: on-failure
+    depends_on:
+      - postgres-service
+    deploy:
+      replicas: 3
+    networks:
+      users-network:
 networks:
   users-network:
     driver: bridge
