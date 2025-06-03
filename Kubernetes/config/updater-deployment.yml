@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: updater-dep
+  namespace: training
+  annotations:
+    kubernetes.io/change-cause: "initial release"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app-name: "updater"
+  template:
+    metadata:
+      namespace: training
+      labels:
+        app-name: "updater"
+    spec:
+      containers:
+        - name: updater
+#          image: landrzejewski/updater:v1
+#          args:
+#            - "20"
+
+          image: landrzejewski/updater:v2
+#          env:
+#            - name: INTERVAL
+#              value: "20"
+
+#          env:
+#            - name: INTERVAL
+#              valueFrom:
+#                configMapKeyRef:
+#                  key: INTERVAL
+#                  name: updater-cm
+
+          envFrom:
+            - configMapRef:
+                name: updater-cm
+          volumeMounts:
+             - mountPath: /config
+               name: config
+
+      volumes:
+        - name: config
+          configMap:
+            name: updater-cm
