@@ -7,7 +7,9 @@ spec:
   selector:
     app-name: "echo-server"
   # clusterIP: 17.122.11.122
-  # type: ClusterIP # default
+  externalTrafficPolicy: Cluster
+  type: LoadBalancer
   ports:
     - port: 80
       targetPort: http #8080
+      nodePort: 30000
