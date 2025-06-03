@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: training
-  name: sqrt-deployment
+  name: sqrt-dep
 spec:
   selector:
     matchLabels:
