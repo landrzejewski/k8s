@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-slave
+  labels:
+    app: redis-slave
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: redis-slave
+  template:
+    metadata:
+      labels:
+        app: redis-slave
+    spec:
+      initContainers:
+        - name: wait-for-master
+          image: alpine:3.19
+          command: [ 'sh', '-c', 'apk add --no-cache netcat-openbsd && until nc -z redis-master-headless 6379; do echo waiting for redis-master...; sleep 2; done']
+      containers:
+        - name: redis
+          image: redis:6.2
+          args:
+            - redis-server
+            - --slaveof
+            - redis-master-headless
+            - "6379"
+          ports:
+            - containerPort: 6379
