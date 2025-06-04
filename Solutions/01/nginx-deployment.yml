@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-nginx
+      env: staging
+  template:
+    metadata:
+      labels:
+        app: web-nginx
+        env: staging
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.21-alpine
+          ports:
+            - containerPort: 80
+              name: http
+
