@@ -40,8 +40,17 @@ spec:
           volumeMounts:
              - mountPath: /config
                name: config
+             - mountPath: /storage
+               name: storage
 
       volumes:
         - name: config
           configMap:
             name: updater-cm
+        - name: storage
+          persistentVolumeClaim:
+            claimName: storage-pvc
+          #emptyDir:
+          #  medium: Memory
+          #hostPath:
+          #  path: /tmp/storage
