@@ -10,8 +10,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 0
-      maxSurge: 1
+      maxUnavailable: 1
+      maxSurge: 0
   selector:
     matchLabels:
       app: mysql
@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: docker.io/library/mysql:5.7.14
+          image: mysql:5.7.42
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
@@ -32,12 +32,7 @@ spec:
           lifecycle:
             postStart:
               exec:
-                command:
-                  - sh
-                  - -c
-                  - |
-                    echo "Running mysql_upgrade..."
-                    mysql_upgrade -uroot -p"$MYSQL_ROOT_PASSWORD"
+                command: ["sh", "-c", "sleep 10", "mysql_upgrade -uroot -p$MYSQL_ROOT_PASSWORD || true"]
           ports:
             - containerPort: 3306
           volumeMounts:

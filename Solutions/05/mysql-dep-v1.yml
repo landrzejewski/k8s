@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: docker.io/library/mysql:5.7.4
+          image: mysql:5.7.41
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
