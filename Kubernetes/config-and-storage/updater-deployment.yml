@@ -17,6 +17,13 @@ spec:
         app-name: "updater"
     spec:
       containers:
+        - name: nginx
+          image: nginx:1.21-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+              - name: www
+                mountPath: /usr/share/nginx/html
         - name: updater
 #          image: landrzejewski/updater:v1
 #          args:
@@ -42,6 +49,8 @@ spec:
                name: config
              - mountPath: /storage
                name: storage
+             - name: www
+               mountPath: /var/htdocs
 
       volumes:
         - name: config
@@ -50,7 +59,9 @@ spec:
         - name: storage
           persistentVolumeClaim:
             claimName: storage-pvc
-          #emptyDir:
-          #  medium: Memory
+        - name: www
+          # emptyDir: {}
+          emptyDir:
+            medium: Memory
           #hostPath:
           #  path: /tmp/storage
