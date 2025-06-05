@@ -34,18 +34,16 @@ Jeżeli klaster został utworzony przy pomocy **kubeadm**, domyślnie etcd dzia�
 
 ```bash
 # 1. Uzyskanie dostępu do węzła master
-SSH user@master-node
+SSH root@master
 
-# 2. Utworzenie katalogu na snapshot
-sudo mkdir -p /var/backups/etcd
+export ETCDCTL_CACERT=/etc/kubernetes/pki/etcd/ca.crt
+export ETCDCTL_CERT=/etc/kubernetes/pki/etcd/server.crt
+export ETCDCTL_KEY=/etc/kubernetes/pki/etcd/server.key
 
-# 3. Wykonanie snapshotu etcd
-sudo ETCDCTL_API=3 etcdctl \
-  --endpoints=https://127.0.0.1:2379 \
-  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
-  --cert=/etc/kubernetes/pki/etcd/server.crt \
-  --key=/etc/kubernetes/pki/etcd/server.key \
-  snapshot save /var/backups/etcd/snapshot-$(date +%Y%m%d%H%M%S).db
+apt install etcd-client
+
+etcdctl snapshot save /var/backups/etcd-snapshot.db --endpoints=https://127.0.0.1:2379
+
 ```
 
 **Wyjaśnienie parametrów**:
@@ -57,60 +55,12 @@ sudo ETCDCTL_API=3 etcdctl \
 **Weryfikacja poprawności snapshotu**:
 
 ```bash
-sudo ETCDCTL_API=3 etcdctl \
-  v3snapshot status /var/backups/etcd/snapshot-20250605120000.db
-
-# Przykład odpowiedzi:
-#   Revision: 123456
-#   Total key-value pairs: 150
-#   Total size: 1024 kB
+etcdctl snapshot status /var/backups/etcd-snapshot.db
 ```
 
 Jeśli zwróci poprawne statystyki, snapshot został wykonany pomyślnie.
 
-### 2.2. Automatyzacja backupu etcd
-
-1. **Chronjob na węźle master**
-   Wykorzystanie crona lub systemd-timer do cyklicznego wywoływania powyższej komendy. Przykład prostego skryptu w `/usr/local/bin/backup-etcd.sh`:
-
-   ```bash
-   #!/bin/bash
-   BACKUP_DIR="/var/backups/etcd"
-   TIMESTAMP=$(date +%Y%m%d%H%M%S)
-   FILENAME="${BACKUP_DIR}/snapshot-${TIMESTAMP}.db"
-   # Tworzenie katalogu, jeśli nie istnieje
-   mkdir -p "${BACKUP_DIR}"
-
-   ETCDCTL_API=3 etcdctl \
-     --endpoints=https://127.0.0.1:2379 \
-     --cacert=/etc/kubernetes/pki/etcd/ca.crt \
-     --cert=/etc/kubernetes/pki/etcd/server.crt \
-     --key=/etc/kubernetes/pki/etcd/server.key \
-     snapshot save "${FILENAME}"
-
-   # Opcjonalnie: usuń snapshoty starsze niż 7 dni
-   find "${BACKUP_DIR}" -type f -name "snapshot-*.db" -mtime +7 -exec rm {} \;
-   ```
-
-   W `crontab -e` (jako root) wpis:
-
-   ```
-   0 */6 * * * /usr/local/bin/backup-etcd.sh >> /var/log/etcd-backup.log 2>&1
-   ```
-
-   Powyższa reguła uruchomi backup co 6 godzin i zachowa log w `/var/log/etcd-backup.log`. Pliki starsze niż 7 dni zostaną usunięte.
-
-2. **Przechowywanie snapshotów poza maszyną**
-   Po utworzeniu lokalnego pliku warto przenieść go do zewnętrznego repozytorium (S3, NFS, SSH, Dropbox itp.). Przykładowe dodanie wysłania do S3 w skrypcie:
-
-   ```bash
-   # Po utworzeniu snapshot:
-   aws s3 cp "${FILENAME}" s3://my-k8s-backups/etcd/
-   ```
-
-   Dzięki temu, w razie awarii węzłów master, snapshot będzie dostępny w zewnętrznym miejscu.
-
-### 2.3. Przywracanie etcd ze snapshotu
+### 2.2. Przywracanie etcd ze snapshotu
 
 W środowisku kubeadm należy wykonać przywracanie etcd w trybie offline (gdy etcd nie działa) i następnie zresetować konfigurację kube-apiserver. Przykładowe kroki:
 
@@ -138,19 +88,6 @@ W środowisku kubeadm należy wykonać przywracanie etcd w trybie offline (gdy e
     * Skopiuj zawartość `/var/lib/etcd-restore/global` do `/var/lib/etcd`.
 
 4. **Uruchom ponownie kube-apiserver/etcd** – systemd lub kubelet automatycznie wznowi kontroler.
-
-5. **Sprawdź stan**:
-
-   ```bash
-   ETCDCTL_API=3 etcdctl \
-     --endpoints=https://127.0.0.1:2379 \
-     --cacert=/etc/kubernetes/pki/etcd/ca.crt \
-     --cert=/etc/kubernetes/pki/etcd/server.crt \
-     --key=/etc/kubernetes/pki/etcd/server.key \
-     member list
-   ```
-
-   Jeśli komenda zwraca listę członków, etcd działa poprawnie.
 
 ---
 

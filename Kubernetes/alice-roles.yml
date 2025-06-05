@@ -13,6 +13,7 @@ rules:
       - watch
   - apiGroups: ["apps"]
     resources:
+      -
       - deployments
     verbs:
       - get
