@@ -29,6 +29,9 @@ Jednym z najczęściej stosowanych w produkcji sposobów uwierzytelniania „Use
 #### 1.2.1. Przykład generacji certyfikatu dla użytkownika
 
 ```bash
+# Copy ca certs
+scp root@master:/etc/kubernetes/pki/ca.* /home/k8s/
+
 # 1. Generacja klucza prywatnego
 openssl genrsa -out alice.key 2048
 
@@ -44,12 +47,12 @@ kubectl config set-credentials alice \
   --client-key=alice.key
 
 # 5. Dodanie kontekstu (opcjonalnie):
-kubectl config set-context alice-context \
-  --cluster=my-cluster \
+kubectl config set-context alice@kubernetes \
+  --cluster=kubernetes \
   --user=alice
 
 # 6. Przełączenie na kontekst (aby testować uwierzytelnianie):
-kubectl config use-context alice-context
+kubectl config use-context alice@kubernetes
 ```
 
 W powyższym przykładzie:
