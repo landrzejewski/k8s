@@ -13,6 +13,7 @@ spec:
   mountOptions:
     - rw
     - backup-volfile-servers=gluster-1:gluster-2
+  storageClassName: "gluster-csi"
   csi:
     driver: glusterfs.csi.k8s.io
     readOnly: false

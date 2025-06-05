@@ -3,6 +3,7 @@ apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
   name: glusterfs.csi.k8s.io
+  namespace: training
 spec:
   attachRequired: false
   volumeLifecycleModes:

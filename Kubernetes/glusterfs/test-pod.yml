@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gluster-test
+spec:
+  containers:
+    - name: busybox
+      image: busybox
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - mountPath: /mnt/data
+          name: gluster-vol
+  volumes:
+    - name: gluster-vol
+      persistentVolumeClaim:
+        claimName: static-0
