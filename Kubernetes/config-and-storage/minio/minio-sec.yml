@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: csi-s3-secret
+  namespace: training         # ← where your PVC & StorageClass live
+type: Opaque
+stringData:
+  accessKeyID:     minioadmin
+  secretAccessKey: minioadmin123
+  endpoint:        http://192.168.1.100:9000
+  region:          us-east-1    # ← you can leave this blank ("") if you like
