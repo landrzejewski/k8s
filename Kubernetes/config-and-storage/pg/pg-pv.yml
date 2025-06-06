@@ -1,8 +1,7 @@
-# pv-cnpg.yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: cnpg-pv
+  name: pg-pv-1
 spec:
   capacity:
     storage: 5Gi
@@ -11,4 +10,18 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: cnpg-hostpath
   hostPath:
-    path: "/mnt/data/cnpg"
+    path: "/tmp/pg"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pg-pv-2
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: cnpg-hostpath
+  hostPath:
+    path: "/tmp/pg"
