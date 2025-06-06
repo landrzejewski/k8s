@@ -16,3 +16,7 @@ spec:
       owner: appuser
       secret:
         name: pg-sec
+      postInitApplicationSQLRefs:
+        configMapRefs:
+          - name: pg-init-cm
+            key: 01-create-users-table.sql
