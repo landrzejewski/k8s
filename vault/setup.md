@@ -16,15 +16,8 @@ sudo chown -R $(whoami) /home/k8s/vault-db
 
 ./vault operator init -key-shares=5 -key-threshold=3
 
-Unseal Key 1: 1R4S7GJwsCyzWlzksstA3TAfzONmFzydTpaxtOpfPmOO
-Unseal Key 2: TENj1vTbat9AOY1c4vGhDdCVidAX+wNwf1UnpLyARv0g
-Unseal Key 3: sDlQtLItiPaeYe1tuD4FKZjBISmJhDtmSEw3sZUh20gQ
-Unseal Key 4: 7VtYbj1jtDHqYXiiug40l4jaJApr9Kyc3DVzO/AItNPg
-Unseal Key 5: J1d+9JMuaH+w28t/h3YXbWYG7xGvet0g0N2jPy4qY9Cs
-
 ./vault operator unseal key...
 
-Initial Root Token: hvs.jdqLdOcN4dvCiPTKHkHDSQIq
 
 
 ### LDAP
