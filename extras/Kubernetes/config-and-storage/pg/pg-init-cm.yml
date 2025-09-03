@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pg-init-cm
+data:
+  01-create-users-table.sql: |
+    CREATE TABLE users (
+                           id   SERIAL PRIMARY KEY,
+                           name TEXT NOT NULL,
+                           email TEXT UNIQUE NOT NULL
+    );
+  02-seed-users.sql: |
+    INSERT INTO users (name, email)
+    VALUES ('Alice', 'alice@example.com'),
+           ('Bob',   'bob@example.com');

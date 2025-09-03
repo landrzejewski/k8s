@@ -969,6 +969,7 @@ Ephemeral containers, available in Kubernetes 1.18+, allow you to add debugging 
 kubectl debug running-pod -it \
   --image=busybox:1.36 \
   --target=app-container \
+  --profile=general \
   --share-processes
 
 # The debugging container shares the process namespace

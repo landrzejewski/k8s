@@ -1,0 +1,22 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-cluster
+spec:
+  instances: 2
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
+  storage:
+    storageClass: cnpg-hostpath
+    size: 5Gi
+  superuserSecret:
+    name: pg-sec
+  bootstrap:
+    initdb:
+      database: appdb
+      owner: appuser
+      secret:
+        name: pg-sec
+      postInitApplicationSQLRefs:
+        configMapRefs:
+          - name: pg-init-cm
+            key: 01-create-users-table.sql
