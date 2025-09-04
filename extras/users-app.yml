@@ -52,7 +52,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-svc
+  name: postgres-service
   namespace: training
 spec:
   selector:
@@ -60,3 +60,35 @@ spec:
   ports:
     - port: 5432
       targetPort: db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: training
+  name: users-dep
+  annotations:
+    kubernetes.io/change-cause: "initial release"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app-name: users
+  template:
+    metadata:
+      namespace: training
+      labels:
+        app-name: users
+    spec:
+      containers:
+        - name: users
+          image: landrzejewski/users:latest
+          ports:
+            - containerPort: 3000
+              name: http
+          resources:
+            requests:
+              memory: 64M
+              cpu: "250m"
+            limits:
+              memory: 128M
+              cpu: "500m"
