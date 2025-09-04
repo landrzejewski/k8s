@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: training
+  name: postgres-po
+  labels:
+    app-name: postgres
+spec:
+  containers:
+    - name: postgres
+      image: postgres:17-alpine
+      ports:
+        - containerPort: 5432
+          name: db
+      env:
+        - name: POSTGRES_DB
+          value: training
+        - name: POSTGRES_USER
+          value: admin
+        - name: POSTGRES_PASSWORD
+          value: admin
+      resources:
+        requests:
+          memory: "128M"
+          cpu: "250m"
+        limits:
+          memory: "512M"
+          cpu: "500m"
+      livenessProbe:
+        tcpSocket:
+          port: 5432
+        initialDelaySeconds: 30
+        timeoutSeconds: 2
+        periodSeconds: 3
+        failureThreshold: 3
