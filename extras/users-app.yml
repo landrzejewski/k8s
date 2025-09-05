@@ -1,4 +1,25 @@
 apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: training
+type: Opaque
+data:
+  # Both “admin” → base64("admin") = YWRtaW4=
+  POSTGRES_USER:     YWRtaW4=
+  POSTGRES_PASSWORD: YWRtaW4=
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: training
+  name: postgres-cm
+data:
+  #POSTGRES_USER: "admin"
+  #POSTGRES_PASSWORD: "admin"
+  POSTGRES_DB: "training"
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   namespace: training
@@ -20,30 +41,28 @@ spec:
       ports:
         - containerPort: 5432
           name: db
+      #      envFrom:
+      #        - configMapRef:
+      #            name: postgres-cm
       env:
         - name: POSTGRES_DB
-          value: training
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-cm
+              key: POSTGRES_DB
         - name: POSTGRES_USER
-          value: admin
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_USER
         - name: POSTGRES_PASSWORD
-          value: admin
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
       volumeMounts:
         - name: init-db-scripts
           mountPath: /docker-entrypoint-initdb.d
-      resources:
-        requests:
-          memory: "128M"
-          cpu: "250m"
-        limits:
-          memory: "512M"
-          cpu: "500m"
-      livenessProbe:
-        tcpSocket:
-          port: 5432
-        initialDelaySeconds: 30
-        timeoutSeconds: 2
-        periodSeconds: 3
-        failureThreshold: 3
   volumes:
     - name: init-db-scripts
       configMap:
@@ -52,11 +71,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-service
   namespace: training
+  name: postgres-service
 spec:
   selector:
-    app-name: "postgres"
+    app-name: postgres
   ports:
     - port: 5432
       targetPort: db
@@ -92,7 +111,16 @@ spec:
             limits:
               memory: 128M
               cpu: "500m"
-
-
-
-
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: training
+  name: users-svc
+spec:
+  selector:
+    app-name: users
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: http

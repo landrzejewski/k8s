@@ -5,9 +5,9 @@ metadata:
 spec:
   gatewayClassName: nginx
   listeners:
-  - name: http
-    protocol: HTTP
-    port: 80
+    - name: http
+      protocol: HTTP
+      port: 80
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -15,10 +15,21 @@ metadata:
   name: example-route
 spec:
   parentRefs:
-  - name: example-gateway
+    - name: example-gateway
   # hostnames:
   # - "whatever.com"
   rules:
-  - backendRefs:
-    - name: nginxgw
-      port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /app
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - name: nginxgw
+          port: 80
+
