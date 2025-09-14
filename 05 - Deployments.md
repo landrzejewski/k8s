@@ -1,5 +1,3 @@
-# 05 - Deployments
-
 ## Understanding Deployments
 
 ### Why Deployments Over Standalone Pods?
@@ -79,18 +77,18 @@ spec:
         version: "1.20"
     spec:
       containers:
-      - name: nginx
-        image: nginx:1.20
-        ports:
-        - containerPort: 80
-          protocol: TCP
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "100m"
-          limits:
-            memory: "128Mi"
-            cpu: "200m"
+        - name: nginx
+          image: nginx:1.20
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
 ```
 
 Understanding the key components of this YAML:
@@ -290,22 +288,22 @@ spec:
         version: "1.20"
     spec:
       containers:
-      - name: nginx
-        image: nginx:1.20
-        ports:
-        - containerPort: 80
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 5
-          periodSeconds: 3
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 10
-          periodSeconds: 5
+        - name: nginx
+          image: nginx:1.20
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
 ```
 
 Apply and test the configuration:
@@ -353,10 +351,10 @@ spec:
         version: "1.20"
     spec:
       containers:
-      - name: nginx
-        image: nginx:1.20
-        ports:
-        - containerPort: 80
+        - name: nginx
+          image: nginx:1.20
+          ports:
+            - containerPort: 80
 ```
 
 Test the recreate strategy:
@@ -456,8 +454,8 @@ spec:
         app: history-limited-app
     spec:
       containers:
-      - name: nginx
-        image: nginx:1.20
+        - name: nginx
+          image: nginx:1.20
 ```
 
 ### Pausing and Resuming Deployments
