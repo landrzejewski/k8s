@@ -1,6 +1,4 @@
-# 06 - Specialized Workloads
-
-## Understanding Specialized Workloads
+## Understanding Workloads
 
 Kubernetes provides several specialized workload controllers designed to handle specific operational patterns that go beyond the capabilities of standard Deployments. While Deployments excel at managing stateless applications that can scale horizontally and tolerate random pod scheduling, many real-world applications require different operational characteristics.
 
@@ -36,7 +34,7 @@ Parallel Jobs with Work Queue pattern involves multiple pods processing items fr
 
 ## Workshop: Jobs and CronJobs
 
-This workshop demonstrates practical implementations of Jobs and CronJobs in Kubernetes. 
+This workshop demonstrates practical implementations of Jobs and CronJobs in Kubernetes.
 
 ### Basic Job Operations
 
@@ -200,97 +198,6 @@ kubectl logs -l job-name=parallel-processor --prefix=true
 kubectl get pods -l job-name=parallel-processor -o custom-columns=NAME:.metadata.name,STATUS:.status.phase
 ```
 
-#### Work Queue Pattern
-
-The work queue pattern is useful when the amount of work is not known in advance:
-
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: queue-processor
-  labels:
-    app: queue-worker
-spec:
-  parallelism: 4      # Run 4 workers concurrently
-  completions: 4      # Complete when 4 pods succeed
-  template:
-    metadata:
-      labels:
-        app: queue-worker
-    spec:
-      containers:
-      - name: worker
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - |
-          echo "Worker $(hostname) started"
-          echo "Connecting to work queue..."
-          
-          # Simulate processing items from a queue
-          ITEMS_TO_PROCESS=$((RANDOM % 5 + 3))
-          echo "Found $ITEMS_TO_PROCESS items in queue"
-          
-          for i in $(seq 1 $ITEMS_TO_PROCESS); do
-            echo "Processing item $i of $ITEMS_TO_PROCESS"
-            sleep 5
-          done
-          
-          echo "Worker $(hostname) finished processing $ITEMS_TO_PROCESS items"
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "100m"
-      restartPolicy: Never
-  backoffLimit: 6
-```
-
-### Advanced Job Configurations
-
-#### Handling Failures and Retries
-
-Jobs can be configured to handle failures gracefully:
-
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: resilient-job
-  labels:
-    app: fault-tolerant
-spec:
-  template:
-    metadata:
-      labels:
-        app: fault-tolerant
-    spec:
-      containers:
-      - name: worker
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - |
-          echo "Attempting task execution"
-          
-          # Simulate 50% chance of failure
-          if [ $((RANDOM % 2)) -eq 0 ]; then
-            echo "Task failed, will retry"
-            exit 1
-          fi
-          
-          echo "Task completed successfully"
-        resources:
-          requests:
-            memory: "32Mi"
-            cpu: "50m"
-      restartPolicy: OnFailure  # Restart container in same pod on failure
-  backoffLimit: 5               # Allow up to 5 retries
-  activeDeadlineSeconds: 180    # Fail if not complete within 3 minutes
-```
-
 ## CronJobs for Scheduled Tasks
 
 CronJobs extend the Job concept by adding time-based scheduling. They create Job objects according to a schedule defined using standard cron syntax, making them perfect for recurring tasks like backups, reports, and maintenance operations.
@@ -409,138 +316,6 @@ kubectl patch cronjob system-maintenance -p '{"spec":{"suspend":true}}'
 kubectl patch cronjob system-maintenance -p '{"spec":{"suspend":false}}'
 ```
 
-### Practical CronJob Examples
-
-#### Database Backup CronJob
-
-A production-ready example for daily database backups:
-
-```yaml
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: database-backup
-  labels:
-    app: backup
-    component: database
-spec:
-  schedule: "0 2 * * *"  # Daily at 2:00 AM
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: backup
-            image: busybox:1.36
-            command:
-            - /bin/sh
-            - -c
-            - |
-              echo "========================================="
-              echo "Database Backup Job"
-              echo "========================================="
-              START_TIME=$(date '+%Y-%m-%d %H:%M:%S')
-              echo "Start time: $START_TIME"
-              
-              # Generate backup filename with timestamp
-              BACKUP_FILE="db-backup-$(date '+%Y%m%d-%H%M%S').tar.gz"
-              echo "Backup file: $BACKUP_FILE"
-              
-              # Simulate database backup process
-              echo "Connecting to database..."
-              sleep 5
-              
-              echo "Dumping database tables..."
-              sleep 20
-              
-              echo "Compressing backup..."
-              sleep 10
-              
-              echo "Uploading to backup storage..."
-              sleep 15
-              
-              # Calculate duration
-              END_TIME=$(date '+%Y-%m-%d %H:%M:%S')
-              echo "End time: $END_TIME"
-              
-              echo "Backup completed successfully!"
-              echo "File size: $((RANDOM % 1000 + 100))MB"
-              echo "========================================="
-            env:
-            - name: DATABASE_NAME
-              value: "production_db"
-            - name: BACKUP_RETENTION_DAYS
-              value: "30"
-            resources:
-              requests:
-                memory: "128Mi"
-                cpu: "100m"
-              limits:
-                memory: "256Mi"
-                cpu: "500m"
-          restartPolicy: OnFailure
-      backoffLimit: 3
-      activeDeadlineSeconds: 600  # 10 minute timeout
-  successfulJobsHistoryLimit: 7  # Keep one week of successful backups
-  failedJobsHistoryLimit: 3      # Keep last 3 failures for debugging
-  concurrencyPolicy: Forbid      # Never run concurrent backups
-```
-
-#### Log Rotation CronJob
-
-Hourly log rotation and cleanup:
-
-```yaml
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: log-rotation
-  labels:
-    app: maintenance
-    component: logs
-spec:
-  schedule: "0 * * * *"  # Every hour at minute 0
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: rotate
-            image: busybox:1.36
-            command:
-            - /bin/sh
-            - -c
-            - |
-              echo "Log rotation started at $(date)"
-              
-              # Simulate log rotation
-              echo "Scanning log directories..."
-              sleep 3
-              
-              LOGS_ROTATED=$((RANDOM % 20 + 5))
-              echo "Found $LOGS_ROTATED logs to rotate"
-              
-              echo "Compressing old logs..."
-              sleep 5
-              
-              echo "Archiving compressed logs..."
-              sleep 3
-              
-              SPACE_FREED=$((RANDOM % 500 + 100))
-              echo "Space freed: ${SPACE_FREED}MB"
-              
-              echo "Log rotation completed at $(date)"
-            resources:
-              requests:
-                memory: "32Mi"
-                cpu: "50m"
-          restartPolicy: OnFailure
-      ttlSecondsAfterFinished: 1800  # Clean up after 30 minutes
-  successfulJobsHistoryLimit: 2
-  failedJobsHistoryLimit: 1
-  concurrencyPolicy: Replace  # Replace running job with new one
-```
-
 ## StatefulSets for Stateful Applications
 
 StatefulSets are a specialized workload controller designed for applications that require one or more of the following characteristics: stable and unique network identifiers, stable and persistent storage, ordered and graceful deployment and scaling, and ordered automated rolling updates.
@@ -575,9 +350,9 @@ spec:
   selector:
     app: distributed-db
   ports:
-  - port: 5432
-    targetPort: 5432
-    name: postgres
+    - port: 5432
+      targetPort: 5432
+      name: postgres
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -602,79 +377,79 @@ spec:
         app: distributed-db
     spec:
       containers:
-      - name: database
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - |
-          # Get pod ordinal from hostname
-          ORDINAL=${HOSTNAME##*-}
-          echo "Database instance $ORDINAL starting"
-          
-          # Create data directory
-          mkdir -p /data/db
-          
-          # Write instance configuration
-          cat > /data/db/config.txt << EOF
-          Instance ID: $ORDINAL
-          Hostname: $HOSTNAME
-          Started: $(date)
-          Role: $([ "$ORDINAL" = "0" ] && echo "PRIMARY" || echo "REPLICA")
-          EOF
-          
-          # Simulate database operations
-          while true; do
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Instance $ORDINAL: Processing queries" | tee -a /data/db/activity.log
-            
-            # Simulate different behavior for primary vs replicas
-            if [ "$ORDINAL" = "0" ]; then
-              echo "  PRIMARY: Accepting writes" | tee -a /data/db/activity.log
-            else
-              echo "  REPLICA: Syncing from primary" | tee -a /data/db/activity.log
-            fi
-            
-            sleep 30
-          done
-        ports:
-        - containerPort: 5432
-          name: postgres
-        volumeMounts:
-        - name: data-volume
-          mountPath: /data
+        - name: database
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # Get pod ordinal from hostname
+              ORDINAL=${HOSTNAME##*-}
+              echo "Database instance $ORDINAL starting"
+
+              # Create data directory
+              mkdir -p /data/db
+
+              # Write instance configuration
+              cat > /data/db/config.txt << EOF
+              Instance ID: $ORDINAL
+              Hostname: $HOSTNAME
+              Started: $(date)
+              Role: $([ "$ORDINAL" = "0" ] && echo "PRIMARY" || echo "REPLICA")
+              EOF
+
+              # Simulate database operations
+              while true; do
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Instance $ORDINAL: Processing queries" | tee -a /data/db/activity.log
+
+                # Simulate different behavior for primary vs replicas
+                if [ "$ORDINAL" = "0" ]; then
+                  echo "  PRIMARY: Accepting writes" | tee -a /data/db/activity.log
+                else
+                  echo "  REPLICA: Syncing from primary" | tee -a /data/db/activity.log
+                fi
+
+                sleep 30
+              done
+          ports:
+            - containerPort: 5432
+              name: postgres
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "[ -f /data/db/config.txt ]"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "[ -f /data/db/activity.log ]"
+            initialDelaySeconds: 15
+            periodSeconds: 5
+  volumeClaimTemplates:
+    - metadata:
+        name: data-volume
+        labels:
+          app: distributed-db
+      spec:
+        accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
-        livenessProbe:
-          exec:
-            command:
-            - sh
-            - -c
-            - "[ -f /data/db/config.txt ]"
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        readinessProbe:
-          exec:
-            command:
-            - sh
-            - -c
-            - "[ -f /data/db/activity.log ]"
-          initialDelaySeconds: 15
-          periodSeconds: 5
-  volumeClaimTemplates:
-  - metadata:
-      name: data-volume
-      labels:
-        app: distributed-db
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 1Gi
+            storage: 1Gi
 ```
 
 Deploy and manage the StatefulSet:
@@ -753,15 +528,15 @@ spec:
         app: versioned
     spec:
       containers:
-      - name: app
-        image: busybox:1.35  # Initial version
-        command:
-        - sh
-        - -c
-        - |
-          echo "App version: 1.35"
-          echo "Pod: $HOSTNAME"
-          tail -f /dev/null
+        - name: app
+          image: busybox:1.35  # Initial version
+          command:
+            - sh
+            - -c
+            - |
+              echo "App version: 1.35"
+              echo "Pod: $HOSTNAME"
+              tail -f /dev/null
 ```
 
 Perform a partitioned update:
@@ -826,89 +601,89 @@ spec:
       hostNetwork: true  # Use host network for system monitoring
       hostPID: true      # Access host process namespace
       containers:
-      - name: monitor
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - |
-          echo "Node monitor started on $(hostname)"
-          NODE_NAME=${NODE_NAME:-$(hostname)}
-          
-          # Create monitoring directory
-          mkdir -p /var/log/monitoring
-          
-          while true; do
-            echo "==================== $(date '+%Y-%m-%d %H:%M:%S') ====================" | tee -a /var/log/monitoring/node-stats.log
-            
-            # Collect node information
-            echo "Node: $NODE_NAME" | tee -a /var/log/monitoring/node-stats.log
-            
-            # System load
-            echo "Load Average: $(cat /proc/loadavg | cut -d' ' -f1-3)" | tee -a /var/log/monitoring/node-stats.log
-            
-            # Memory usage
-            MEMINFO=$(cat /proc/meminfo)
-            TOTAL_MEM=$(echo "$MEMINFO" | grep MemTotal | awk '{print $2}')
-            FREE_MEM=$(echo "$MEMINFO" | grep MemAvailable | awk '{print $2}')
-            USED_MEM=$((TOTAL_MEM - FREE_MEM))
-            MEM_PERCENT=$((USED_MEM * 100 / TOTAL_MEM))
-            echo "Memory Usage: ${MEM_PERCENT}% (${USED_MEM}KB used of ${TOTAL_MEM}KB)" | tee -a /var/log/monitoring/node-stats.log
-            
-            # Disk usage for root filesystem
-            DF_OUTPUT=$(df -h / | tail -1)
-            DISK_USAGE=$(echo "$DF_OUTPUT" | awk '{print $5}')
-            echo "Root Disk Usage: $DISK_USAGE" | tee -a /var/log/monitoring/node-stats.log
-            
-            # Count running containers
-            CONTAINER_COUNT=$(ls -1 /proc/*/cgroup 2>/dev/null | xargs grep -l docker 2>/dev/null | wc -l)
-            echo "Running Containers: $CONTAINER_COUNT" | tee -a /var/log/monitoring/node-stats.log
-            
-            echo "=======================================================" | tee -a /var/log/monitoring/node-stats.log
-            
-            sleep 60  # Collect stats every minute
-          done
-        env:
-        - name: NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        volumeMounts:
-        - name: proc
-          mountPath: /proc
-          readOnly: true
-        - name: var-log
-          mountPath: /var/log
-        - name: root-fs
-          mountPath: /host/root
-          readOnly: true
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "50m"
-          limits:
-            memory: "128Mi"
-            cpu: "100m"
-        securityContext:
-          privileged: true  # Required for system monitoring
+        - name: monitor
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Node monitor started on $(hostname)"
+              NODE_NAME=${NODE_NAME:-$(hostname)}
+
+              # Create monitoring directory
+              mkdir -p /var/log/monitoring
+
+              while true; do
+                echo "==================== $(date '+%Y-%m-%d %H:%M:%S') ====================" | tee -a /var/log/monitoring/node-stats.log
+
+                # Collect node information
+                echo "Node: $NODE_NAME" | tee -a /var/log/monitoring/node-stats.log
+
+                # System load
+                echo "Load Average: $(cat /proc/loadavg | cut -d' ' -f1-3)" | tee -a /var/log/monitoring/node-stats.log
+
+                # Memory usage
+                MEMINFO=$(cat /proc/meminfo)
+                TOTAL_MEM=$(echo "$MEMINFO" | grep MemTotal | awk '{print $2}')
+                FREE_MEM=$(echo "$MEMINFO" | grep MemAvailable | awk '{print $2}')
+                USED_MEM=$((TOTAL_MEM - FREE_MEM))
+                MEM_PERCENT=$((USED_MEM * 100 / TOTAL_MEM))
+                echo "Memory Usage: ${MEM_PERCENT}% (${USED_MEM}KB used of ${TOTAL_MEM}KB)" | tee -a /var/log/monitoring/node-stats.log
+
+                # Disk usage for root filesystem
+                DF_OUTPUT=$(df -h / | tail -1)
+                DISK_USAGE=$(echo "$DF_OUTPUT" | awk '{print $5}')
+                echo "Root Disk Usage: $DISK_USAGE" | tee -a /var/log/monitoring/node-stats.log
+
+                # Count running containers
+                CONTAINER_COUNT=$(ls -1 /proc/*/cgroup 2>/dev/null | xargs grep -l docker 2>/dev/null | wc -l)
+                echo "Running Containers: $CONTAINER_COUNT" | tee -a /var/log/monitoring/node-stats.log
+
+                echo "=======================================================" | tee -a /var/log/monitoring/node-stats.log
+
+                sleep 60  # Collect stats every minute
+              done
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: proc
+              mountPath: /proc
+              readOnly: true
+            - name: var-log
+              mountPath: /var/log
+            - name: root-fs
+              mountPath: /host/root
+              readOnly: true
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          securityContext:
+            privileged: true  # Required for system monitoring
       volumes:
-      - name: proc
-        hostPath:
-          path: /proc
-      - name: var-log
-        hostPath:
-          path: /var/log
-      - name: root-fs
-        hostPath:
-          path: /
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: var-log
+          hostPath:
+            path: /var/log
+        - name: root-fs
+          hostPath:
+            path: /
       tolerations:
-      # Allow scheduling on control plane nodes
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
-      # Allow scheduling on nodes with NoExecute taints
-      - operator: Exists
-        effect: NoExecute
+        # Allow scheduling on control plane nodes
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        # Allow scheduling on nodes with NoExecute taints
+        - operator: Exists
+          effect: NoExecute
       # Ensure DaemonSet pods are not evicted
       priorityClassName: system-node-critical
 ```
@@ -962,25 +737,25 @@ spec:
       nodeSelector:
         hardware-type: gpu  # Only run on GPU nodes
       containers:
-      - name: gpu-monitor
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - |
-          echo "GPU monitor started on $(hostname)"
-          while true; do
-            echo "$(date): Monitoring GPU on node $(hostname)"
-            # Simulate GPU monitoring
-            echo "GPU Temperature: $((RANDOM % 30 + 50))°C"
-            echo "GPU Utilization: $((RANDOM % 100))%"
-            echo "GPU Memory: $((RANDOM % 16))GB / 16GB"
-            sleep 30
-          done
-        resources:
-          requests:
-            memory: "32Mi"
-            cpu: "50m"
+        - name: gpu-monitor
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "GPU monitor started on $(hostname)"
+              while true; do
+                echo "$(date): Monitoring GPU on node $(hostname)"
+                # Simulate GPU monitoring
+                echo "GPU Temperature: $((RANDOM % 30 + 50))°C"
+                echo "GPU Utilization: $((RANDOM % 100))%"
+                echo "GPU Memory: $((RANDOM % 16))GB / 16GB"
+                sleep 30
+              done
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
 ```
 
 Label nodes and deploy selective DaemonSet:

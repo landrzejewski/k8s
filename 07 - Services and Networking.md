@@ -1,5 +1,3 @@
-# 07 - Services and Networking
-
 ## Understanding Kubernetes Networking
 
 ### The Foundation of Cluster Communication
@@ -276,7 +274,7 @@ Important considerations:
 
 ## Workshop: Services and Networking
 
-This workshop provides hands-on experience with Kubernetes Services and networking concepts. 
+This workshop provides hands-on experience with Kubernetes Services and networking concepts.
 
 ## Service Types and Port Configuration
 
@@ -369,24 +367,6 @@ Let's explore each Service type with practical examples and understand their use
 
 ClusterIP Services provide internal-only access, perfect for microservice communication:
 
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: clusterip-service
-  labels:
-    app: demo
-spec:
-  type: ClusterIP  # This is optional as it's the default
-  selector:
-    app: nginxsvc
-  ports:
-  - name: http
-    port: 8080        # Service port (what clients connect to)
-    targetPort: 80    # Container port (where nginx listens)
-    protocol: TCP
-```
-
 Deploy and test:
 
 ```bash
@@ -427,25 +407,6 @@ curl http://$NODE_IP:8080 2>/dev/null || echo "Failed as expected - ClusterIP is
 ### 2. NodePort Service
 
 NodePort Services expose applications on static ports across all nodes:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: nodeport-service
-  labels:
-    app: demo
-spec:
-  type: NodePort
-  selector:
-    app: nginxsvc
-  ports:
-  - name: http
-    port: 80          # Service port (ClusterIP)
-    targetPort: 80    # Container port
-    nodePort: 30080   # Node port (optional - K8s assigns if omitted)
-    protocol: TCP
-```
 
 Deploy and test:
 
@@ -531,7 +492,7 @@ spec:
   # Example for 192.168.1.x network: 192.168.1.240-192.168.1.250
   # Example for 10.0.0.x network: 10.0.0.240-10.0.0.250
   # Use IP addresses that your router won't assign via DHCP
-  - 192.168.1.240-192.168.1.250  # CHANGE THIS TO MATCH YOUR NETWORK!
+  - 10.10.10.200-10.10.10.250  # CHANGE THIS TO MATCH YOUR NETWORK!
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
@@ -578,26 +539,6 @@ kubectl get l2advertisement -n metallb-system
 ```
 
 #### Creating LoadBalancer Service
-
-Now create a LoadBalancer Service:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: loadbalancer-service
-  labels:
-    app: demo
-spec:
-  type: LoadBalancer
-  selector:
-    app: nginxsvc
-  ports:
-  - name: http
-    port: 80
-    targetPort: 80
-    protocol: TCP
-```
 
 Deploy and test:
 
@@ -647,18 +588,6 @@ kubectl get events -n metallb-system
 
 ExternalName Services create DNS aliases to external services:
 
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: external-google
-spec:
-  type: ExternalName
-  externalName: www.google.com
-```
-
-Deploy and test:
-
 ```bash
 # Create ExternalName service
 kubectl apply -f - <<EOF
@@ -687,25 +616,6 @@ kubectl run test --image=busybox:1.35 --rm -it --restart=Never -- wget -O- -T 2 
 ### 5. Headless Service
 
 Headless Services enable direct Pod discovery without load balancing:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: headless-service
-  labels:
-    app: demo
-spec:
-  clusterIP: None  # This makes it headless
-  selector:
-    app: nginxsvc
-  ports:
-  - name: http
-    port: 80
-    targetPort: 80
-```
-
-Deploy and test:
 
 ```bash
 # Create headless service
@@ -745,56 +655,6 @@ kubectl get pods -l app=nginxsvc -o jsonpath='{range .items[*]}{.status.podIP}{"
 ## Multi-Port Services
 
 Real applications often expose multiple ports for different purposes:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: multi-port-app
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: multi-port-app
-  template:
-    metadata:
-      labels:
-        app: multi-port-app
-    spec:
-      containers:
-      - name: app
-        image: nginxdemos/nginx-hello:latest
-        ports:
-        - containerPort: 8080
-          name: http
-        - containerPort: 8443
-          name: https
-      - name: metrics
-        image: prom/node-exporter:latest
-        ports:
-        - containerPort: 9100
-          name: metrics
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: multi-port-service
-spec:
-  selector:
-    app: multi-port-app
-  ports:
-  - name: http
-    port: 80
-    targetPort: http  # Using named port
-  - name: https  
-    port: 443
-    targetPort: https
-  - name: metrics
-    port: 9090
-    targetPort: 9100  # Using port number
-```
-
-Deploy and test:
 
 ```bash
 # Deploy multi-port application
@@ -970,58 +830,6 @@ kubectl wait --for=condition=ready pod/debug-pod -n frontend --timeout=60s
 kubectl exec -n frontend debug-pod -- nslookup api.backend
 kubectl exec -n frontend debug-pod -- curl -s http://api.backend/headers
 kubectl exec -n frontend debug-pod -- nslookup db.database
-```
-
-### DNS Debugging Techniques
-
-When DNS issues occur, use these debugging approaches:
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: dnsutils
-spec:
-  containers:
-  - name: dnsutils
-    image: gcr.io/kubernetes-e2e-test-images/dnsutils:1.3
-    command:
-    - sleep
-    - "3600"
-```
-
-```bash
-# Deploy DNS debugging pod
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: Pod
-metadata:
-  name: dnsutils
-spec:
-  containers:
-  - name: dnsutils
-    image: gcr.io/kubernetes-e2e-test-images/dnsutils:1.3
-    command:
-    - sleep
-    - "3600"
-EOF
-
-# Wait for pod to be ready
-kubectl wait --for=condition=ready pod/dnsutils --timeout=60s
-
-# Run DNS diagnostics
-kubectl exec dnsutils -- nslookup kubernetes.default
-kubectl exec dnsutils -- dig kubernetes.default.svc.cluster.local
-kubectl exec dnsutils -- host -v -t A nginxsvc.default.svc.cluster.local
-
-# Check if DNS is working for external domains
-kubectl exec dnsutils -- nslookup google.com
-
-# Test DNS resolution time
-kubectl exec dnsutils -- time nslookup nginxsvc
-
-# Check for DNS errors in CoreDNS logs
-kubectl logs -n kube-system -l k8s-app=kube-dns --tail=50
 ```
 
 ## Network Policies
