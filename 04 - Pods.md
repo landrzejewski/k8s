@@ -1,5 +1,3 @@
-# 04 - Pods
-
 ## Understanding Pods
 
 ### The Architecture of a Pod
@@ -201,7 +199,7 @@ spec:
       failureThreshold: 3
 ```
 
-For more complex readiness checks that require executing commands, you can use exec probes. 
+For more complex readiness checks that require executing commands, you can use exec probes.
 
 ### Understanding Startup Probes
 
@@ -504,7 +502,7 @@ The default output shows NAME, READY, STATUS, RESTARTS, and AGE columns. The REA
 kubectl get pods -o wide
 ```
 
-The wide output adds NODE, NOMINATED NODE, and READINESS GATES columns. The NODE column shows which node the Pod is running on, essential for troubleshooting node-specific issues. The IP column displays the Pod's cluster IP address, useful for direct network troubleshooting or when configuring services manually.
+The wide output adds NODE, NOMINATED NODE, IP, and READINESS GATES columns. The NODE column shows which node the Pod is running on, essential for troubleshooting node-specific issues. The IP column displays the Pod's cluster IP address, useful for direct network troubleshooting or when configuring services manually.
 
 Understanding Pod status values requires knowing what each status indicates about the Pod's state. The Pending status means the Pod has been accepted but isn't running yet, often due to image pulling or resource constraints. ContainerCreating indicates active container setup, including volume mounting and network configuration. Running means at least one container is active, though others might be failing. Completed indicates successful termination of all containers, typical for batch jobs. Error or Failed indicates at least one container terminated with an error.
 
@@ -635,11 +633,6 @@ spec:
   
   # Pod-level configurations
   restartPolicy: Always
-  terminationGracePeriodSeconds: 30
-  dnsPolicy: ClusterFirst
-  serviceAccountName: default
-  hostname: web-server
-  hostNetwork: false
   
   # Scheduling preferences
   nodeSelector:
@@ -820,11 +813,9 @@ spec:
       requests:
         memory: "256Mi"    # Guaranteed minimum memory
         cpu: "250m"        # 250 millicores (0.25 CPU)
-        ephemeral-storage: "1Gi"  # Minimum local storage
       limits:
         memory: "512Mi"    # Maximum memory (OOM kill if exceeded)
         cpu: "500m"        # Maximum CPU (throttled if exceeded)
-        ephemeral-storage: "2Gi"  # Maximum local storage
 ```
 
 Understanding resource units is essential for proper configuration. CPU is measured in cores or millicores, where 1000m equals one core. Memory is measured in bytes with suffixes like Mi (mebibytes) or Gi (gibibytes). The distinction between requests and limits creates different Quality of Service (QoS) classes. Pods with requests equal to limits receive Guaranteed QoS, providing the most predictable performance. Pods with requests less than limits receive Burstable QoS, allowing them to use additional resources when available. Pods without any resource specifications receive BestEffort QoS and are the first to be evicted during resource pressure.
@@ -1607,7 +1598,7 @@ spec:
     zone: us-west-1a
   containers:
   - name: ml-training
-    image: tensorflow/tensorflow:2.13.0  # CPU version, use tensorflow/tensorflow:2.13.0-gpu for GPU
+    image: tensorflow/tensorflow:2.13.0
 ```
 
 Before this Pod can be scheduled, appropriate nodes must be labeled:
@@ -1746,7 +1737,6 @@ spec:
       requests:
         memory: "256Mi"
         cpu: "500m"
-        ephemeral-storage: "1Gi"
 ```
 
 ### Understanding Resource Limits
@@ -1769,30 +1759,6 @@ spec:
       limits:
         memory: "512Mi"
         cpu: "1000m"
-```
-
-### Quality of Service Classes
-
-Based on resource requests and limits, Kubernetes assigns one of three Quality of Service (QoS) classes to Pods, which affects their priority during resource contention and eviction.
-
-Guaranteed QoS is assigned when every container in the Pod has memory and CPU limits set, and these limits equal the requests. These Pods receive the most reliable performance and are the last to be evicted during resource pressure.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: guaranteed-qos-pod
-spec:
-  containers:
-  - name: app
-    image: redis:7-alpine
-    resources:
-      requests:
-        memory: "256Mi"
-        cpu: "500m"
-      limits:
-        memory: "256Mi"  # Same as request
-        cpu: "500m"      # Same as request
 ```
 
 ## Container Logs and Debugging
