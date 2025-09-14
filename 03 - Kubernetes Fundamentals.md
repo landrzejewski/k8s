@@ -26,7 +26,7 @@ The control plane orchestrates the entire cluster through several specialized co
 
 #### kube-apiserver: The Communication Hub
 
-The API server is the front door to your Kubernetes cluster—every single operation passes through it. When you run a kubectl command, when applications query cluster state, when nodes report status, or when controllers take action, they all communicate through the API server.
+The API server is the front door to your Kubernetes cluster—every single operation passes through it. When you run a kubectl command, when applications query cluster state, when nodes report status, or when controllers take action, they all communicate through the API server. 
 
 Think of it as the central nervous system of the cluster. It doesn't make decisions itself but provides the communication pathway for all components. The API server validates requests, authenticates users, authorizes actions, and then persists approved changes to etcd. It also serves as the aggregation point for all cluster information, transforming and serving data from etcd in a consumable format.
 
@@ -166,7 +166,7 @@ The spec defines your desired state—the characteristics you want the object to
 
 Different object types have different spec structures:
 - Pod specs define containers, volumes, and scheduling constraints
-- Service specs define ports, selectors, and service types
+- Service specs define ports, selectors, and service types  
 - Deployment specs define replica counts, update strategies, and Pod templates
 - ConfigMap specs contain configuration data
 
@@ -251,36 +251,36 @@ metadata:
 spec:
   # All containers share the Pod's network namespace
   containers:
-    # Main application container
-    - name: nginx
-      image: nginx:1.21
-      ports:
-        - containerPort: 80
-          name: http
-      volumeMounts:
-        - name: shared-data
-          mountPath: /usr/share/nginx/html
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "250m"
-        limits:
-          memory: "128Mi"
-          cpu: "500m"
-
-    # Sidecar container that updates content
-    - name: content-updater
-      image: busybox
-      command: ["/bin/sh"]
-      args: ["-c", "while true; do echo $(date) > /data/index.html; sleep 30; done"]
-      volumeMounts:
-        - name: shared-data
-          mountPath: /data
-
+  # Main application container
+  - name: nginx
+    image: nginx:1.21
+    ports:
+    - containerPort: 80
+      name: http
+    volumeMounts:
+    - name: shared-data
+      mountPath: /usr/share/nginx/html
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+  
+  # Sidecar container that updates content
+  - name: content-updater
+    image: busybox
+    command: ["/bin/sh"]
+    args: ["-c", "while true; do echo $(date) > /data/index.html; sleep 30; done"]
+    volumeMounts:
+    - name: shared-data
+      mountPath: /data
+  
   # Shared volume accessible to both containers
   volumes:
-    - name: shared-data
-      emptyDir: {}
+  - name: shared-data
+    emptyDir: {}
 ```
 
 Despite being fundamental, you rarely create Pods directly. They're ephemeral by design—when a Pod dies, it's gone forever. Higher-level controllers like Deployments create and manage Pods, providing durability through replacement rather than resurrection.
@@ -305,19 +305,19 @@ metadata:
 spec:
   # Desired number of replicas
   replicas: 3
-
+  
   # How Deployment finds its Pods
   selector:
     matchLabels:
       app: web-frontend
-
+  
   # Rolling update strategy
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1        # Max pods above desired count during update
       maxUnavailable: 1  # Max pods unavailable during update
-
+  
   # Pod template - Deployment creates Pods from this
   template:
     metadata:
@@ -327,43 +327,43 @@ spec:
         version: v2
     spec:
       containers:
-        - name: webapp
-          image: nginx:1.21
-          ports:
-            - containerPort: 80
-              name: http
-
-          # Liveness probe - container is restarted if this fails
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 80
-            initialDelaySeconds: 30
-            periodSeconds: 10
-
-          # Readiness probe - pod isn't sent traffic until this succeeds
-          readinessProbe:
-            httpGet:
-              path: /ready
-              port: 80
-            initialDelaySeconds: 5
-            periodSeconds: 5
-
-          # Environment variables
-          env:
-            - name: ENVIRONMENT
-              value: "production"
-            - name: LOG_LEVEL
-              value: "info"
-
-          # Resource management
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "100m"
-            limits:
-              memory: "256Mi"
-              cpu: "200m"
+      - name: webapp
+        image: nginx:1.21
+        ports:
+        - containerPort: 80
+          name: http
+        
+        # Liveness probe - container is restarted if this fails
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        
+        # Readiness probe - pod isn't sent traffic until this succeeds
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        
+        # Environment variables
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: LOG_LEVEL
+          value: "info"
+        
+        # Resource management
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
 ```
 
 Deployments excel at managing stateless applications—web servers, APIs, microservices—where any replica can handle any request. The Deployment controller continuously ensures the desired number of healthy Pods run, automatically replacing any that fail or are evicted.
@@ -389,9 +389,9 @@ spec:
   selector:
     app: backend   # Routes to all Pods with this label
   ports:
-    - port: 80       # Service port
-      targetPort: 8080  # Pod port
-      protocol: TCP
+  - port: 80       # Service port
+    targetPort: 8080  # Pod port
+    protocol: TCP
 
 ---
 # NodePort Service - External access via node ports
@@ -404,9 +404,9 @@ spec:
   selector:
     app: web-frontend
   ports:
-    - port: 80
-      targetPort: 80
-      nodePort: 30080  # Accessible on every node at this port (30000-32767)
+  - port: 80
+    targetPort: 80
+    nodePort: 30080  # Accessible on every node at this port (30000-32767)
 
 ---
 # LoadBalancer Service - Cloud provider load balancer
@@ -419,8 +419,8 @@ spec:
   selector:
     app: web-frontend
   ports:
-    - port: 80
-      targetPort: 80
+  - port: 80
+    targetPort: 80
   # Cloud provider assigns external IP
 
 ---
@@ -434,8 +434,8 @@ spec:
   selector:
     app: database
   ports:
-    - port: 5432
-      targetPort: 5432
+  - port: 5432
+    targetPort: 5432
 ```
 
 Services implement load balancing at the connection level, distributing traffic across healthy backend Pods. The kube-proxy component on each node maintains the networking rules that make Services work, ensuring traffic reaches the right destinations.
@@ -457,22 +457,22 @@ data:
   database_url: "postgres://localhost:5432/myapp"
   log_level: "debug"
   max_connections: "100"
-
+  
   # Complete configuration file
   app.properties: |
     # Application Configuration
     server.port=8080
     server.host=0.0.0.0
-
+    
     # Database Settings
     db.pool.min=10
     db.pool.max=100
     db.timeout=30s
-
+    
     # Feature Flags
     feature.newUI=true
     feature.analytics=false
-
+  
   # JSON configuration
   features.json: |
     {
@@ -498,36 +498,36 @@ metadata:
   name: configured-app
 spec:
   containers:
-    - name: app
-      image: myapp:latest
-
-      # Mount entire ConfigMap as environment variables
-      envFrom:
-        - configMapRef:
-            name: app-config
-
-      # Mount specific keys as environment variables
-      env:
-        - name: DB_URL
-          valueFrom:
-            configMapKeyRef:
-              name: app-config
-              key: database_url
-
-      # Mount ConfigMap as files
-      volumeMounts:
-        - name: config-volume
-          mountPath: /etc/config
-
-  volumes:
-    - name: config-volume
-      configMap:
+  - name: app
+    image: myapp:latest
+    
+    # Mount entire ConfigMap as environment variables
+    envFrom:
+    - configMapRef:
         name: app-config
-        items:
-          - key: app.properties
-            path: application.properties
-          - key: features.json
-            path: features.json
+    
+    # Mount specific keys as environment variables
+    env:
+    - name: DB_URL
+      valueFrom:
+        configMapKeyRef:
+          name: app-config
+          key: database_url
+    
+    # Mount ConfigMap as files
+    volumeMounts:
+    - name: config-volume
+      mountPath: /etc/config
+  
+  volumes:
+  - name: config-volume
+    configMap:
+      name: app-config
+      items:
+      - key: app.properties
+        path: application.properties
+      - key: features.json
+        path: features.json
 ```
 
 ConfigMaps enable configuration hot-reloading when mounted as volumes—update the ConfigMap, and files in Pods automatically update (though applications must watch for changes). This enables dynamic reconfiguration without Pod restarts.
@@ -570,33 +570,33 @@ metadata:
   name: secure-app
 spec:
   containers:
-    - name: app
-      image: myapp:latest
-
-      # Mount secrets as environment variables
-      env:
-        - name: DB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: db-credentials
-              key: username
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: db-credentials
-              key: password
-
-      # Mount secrets as files (more secure than env vars)
-      volumeMounts:
-        - name: secret-volume
-          mountPath: /etc/secrets
-          readOnly: true
-
-  volumes:
+  - name: app
+    image: myapp:latest
+    
+    # Mount secrets as environment variables
+    env:
+    - name: DB_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: db-credentials
+          key: username
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: db-credentials
+          key: password
+    
+    # Mount secrets as files (more secure than env vars)
+    volumeMounts:
     - name: secret-volume
-      secret:
-        secretName: api-keys
-        defaultMode: 0400  # Read-only for owner only
+      mountPath: /etc/secrets
+      readOnly: true
+  
+  volumes:
+  - name: secret-volume
+    secret:
+      secretName: api-keys
+      defaultMode: 0400  # Read-only for owner only
 ```
 
 Kubernetes provides several Secret types for specific use cases:
@@ -652,15 +652,15 @@ metadata:
   name: database-pod
 spec:
   containers:
-    - name: postgres
-      image: postgres:13
-      volumeMounts:
-        - name: data-volume
-          mountPath: /var/lib/postgresql/data
-  volumes:
+  - name: postgres
+    image: postgres:13
+    volumeMounts:
     - name: data-volume
-      persistentVolumeClaim:
-        claimName: data-claim
+      mountPath: /var/lib/postgresql/data
+  volumes:
+  - name: data-volume
+    persistentVolumeClaim:
+      claimName: data-claim
 ```
 
 Storage classes enable dynamic provisioning—instead of pre-creating PVs, the cluster automatically provisions storage when PVCs are created:
@@ -704,8 +704,8 @@ metadata:
     release-track: stable
 spec:
   containers:
-    - name: web
-      image: frontend:v2.1.0
+  - name: web
+    image: frontend:v2.1.0
 ```
 
 Labels enable powerful organizational patterns:
@@ -781,14 +781,14 @@ spec:
     matchLabels:
       app: web
     matchExpressions:
-      - key: environment
-        operator: In
-        values: [production, staging]
-      - key: tier
-        operator: NotIn
-        values: [database]
-      - key: canary
-        operator: DoesNotExist
+    - key: environment
+      operator: In
+      values: [production, staging]
+    - key: tier
+      operator: NotIn
+      values: [database]
+    - key: canary
+      operator: DoesNotExist
 ```
 
 ### Practical Labeling Strategies
@@ -810,17 +810,17 @@ metadata:
     app.kubernetes.io/component: backend
     app.kubernetes.io/part-of: e-commerce
     app.kubernetes.io/managed-by: helm
-
+    
     # Business labels
     customer: enterprise
     cost-center: engineering
     compliance: pci-dss
-
+    
     # Operational labels
     environment: production
     region: us-east-1
     availability-zone: us-east-1a
-
+    
 spec:
   replicas: 3
   selector:
@@ -835,8 +835,8 @@ spec:
         app.kubernetes.io/version: "2.1.0"
     spec:
       containers:
-        - name: payment
-          image: payment:2.1.0
+      - name: payment
+        image: payment:2.1.0
 ```
 
 ## Namespaces: Virtual Clusters Within Clusters
@@ -949,7 +949,7 @@ spec:
   selector:
     app: postgres
   ports:
-    - port: 5432
+  - port: 5432
 
 ---
 # Pod in 'frontend' namespace connecting to backend
@@ -960,12 +960,12 @@ metadata:
   namespace: frontend
 spec:
   containers:
-    - name: app
-      image: webapp:latest
-      env:
-        - name: DATABASE_URL
-          # Full DNS name for cross-namespace access
-          value: "postgres://database.backend.svc.cluster.local:5432/mydb"
+  - name: app
+    image: webapp:latest
+    env:
+    - name: DATABASE_URL
+      # Full DNS name for cross-namespace access
+      value: "postgres://database.backend.svc.cluster.local:5432/mydb"
 ```
 
 ## Deployment Options for Kubernetes Applications
@@ -986,10 +986,10 @@ metadata:
   name: simple-web
 spec:
   containers:
-    - name: nginx
-      image: nginx:latest
-      ports:
-        - containerPort: 80
+  - name: nginx
+    image: nginx:latest
+    ports:
+    - containerPort: 80
 ```
 
 Problems with direct Pods:
@@ -1026,22 +1026,22 @@ spec:
         app: api-server
     spec:
       containers:
-        - name: api
-          image: api:v2.0
-          ports:
-            - containerPort: 8080
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /ready
-              port: 8080
-            initialDelaySeconds: 5
-            periodSeconds: 5
+      - name: api
+        image: api:v2.0
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
 ```
 
 Deployments excel at:
@@ -1072,29 +1072,29 @@ spec:
         app: postgres
     spec:
       containers:
-        - name: postgres
-          image: postgres:13
-          ports:
-            - containerPort: 5432
-          env:
-            - name: POSTGRES_DB
-              value: mydb
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secret
-                  key: password
-          volumeMounts:
-            - name: postgres-storage
-              mountPath: /var/lib/postgresql/data
+      - name: postgres
+        image: postgres:13
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: mydb
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
   volumeClaimTemplates:
-    - metadata:
-        name: postgres-storage
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 10Gi
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
 ```
 
 StatefulSets provide:
@@ -1123,21 +1123,21 @@ spec:
         app: log-collector
     spec:
       containers:
-        - name: fluentd
-          image: fluentd:latest
-          volumeMounts:
-            - name: varlog
-              mountPath: /var/log
-            - name: dockercontainers
-              mountPath: /var/lib/docker/containers
-              readOnly: true
-      volumes:
+      - name: fluentd
+        image: fluentd:latest
+        volumeMounts:
         - name: varlog
-          hostPath:
-            path: /var/log
+          mountPath: /var/log
         - name: dockercontainers
-          hostPath:
-            path: /var/lib/docker/containers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: dockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
 ```
 
 DaemonSets are perfect for:
@@ -1165,9 +1165,9 @@ spec:
   template:
     spec:
       containers:
-        - name: backup
-          image: backup-tool:latest
-          command: ["./backup.sh"]
+      - name: backup
+        image: backup-tool:latest
+        command: ["./backup.sh"]
       restartPolicy: OnFailure
 
 ---
@@ -1183,9 +1183,9 @@ spec:
       template:
         spec:
           containers:
-            - name: backup
-              image: backup-tool:latest
-              command: ["./backup.sh"]
+          - name: backup
+            image: backup-tool:latest
+            command: ["./backup.sh"]
           restartPolicy: OnFailure
 ```
 

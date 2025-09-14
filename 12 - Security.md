@@ -1,4 +1,3 @@
-# 12 - Security
 
 ## Understanding Cloud-Native Security Architecture
 

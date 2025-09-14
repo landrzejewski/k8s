@@ -8,7 +8,7 @@ While VMs solved the hardware waste problem, they introduced new challenges. Eac
 
 ### How Containers Differ from Virtual Machines
 
-Containers represent a fundamental architectural shift. Instead of virtualizing hardware like VMs do, containers virtualize at the operating system level. All containers on a host share the same OS kernel but run in isolated processes.
+Containers represent a fundamental architectural shift. Instead of virtualizing hardware like VMs do, containers virtualize at the operating system level. All containers on a host share the same OS kernel but run in isolated processes. 
 
 To understand this better, imagine an apartment building versus individual houses. Virtual machines are like separate houses—each has its own foundation, plumbing, electrical system, and all the infrastructure needed to function independently. This independence provides strong isolation but requires duplicating everything for each house. Containers are like apartments in a single building—they share the core infrastructure (foundation, main water lines, electrical grid) but maintain complete privacy and isolation through walls and separate entrances. This shared infrastructure model explains why:
 
@@ -149,39 +149,39 @@ Understanding what happens when you type `docker run nginx` helps demystify cont
 1. **Image Resolution**: Docker first checks if the nginx image exists locally. If not, it contacts the configured registry (Docker Hub by default) and downloads the image layer by layer. Each layer is compressed for transfer and cached locally.
 
 2. **Storage Preparation**: Docker prepares the filesystem by:
-    - Extracting each layer to the storage driver location
-    - Creating a union filesystem mount combining all read-only layers
-    - Adding a new read-write layer on top for the container
-    - Setting up mount points for any volumes
+   - Extracting each layer to the storage driver location
+   - Creating a union filesystem mount combining all read-only layers
+   - Adding a new read-write layer on top for the container
+   - Setting up mount points for any volumes
 
 3. **Namespace Creation**: The kernel creates isolated namespaces:
-    - New PID namespace (container gets its own process tree)
-    - New network namespace (container gets virtual network interface)
-    - New mount namespace (container sees its own filesystem)
-    - Other namespaces as configured
+   - New PID namespace (container gets its own process tree)
+   - New network namespace (container gets virtual network interface)
+   - New mount namespace (container sees its own filesystem)
+   - Other namespaces as configured
 
 4. **Cgroup Configuration**: Docker configures control groups:
-    - Creates a new cgroup for the container
-    - Sets memory limits, CPU shares, I/O weights
-    - Registers the container's process with the cgroup
+   - Creates a new cgroup for the container
+   - Sets memory limits, CPU shares, I/O weights
+   - Registers the container's process with the cgroup
 
 5. **Network Setup**: Docker configures networking:
-    - Creates virtual ethernet pair (veth)
-    - Attaches one end to container namespace
-    - Attaches other end to docker bridge
-    - Assigns IP address from bridge subnet
-    - Sets up NAT rules for port mapping
+   - Creates virtual ethernet pair (veth)
+   - Attaches one end to container namespace
+   - Attaches other end to docker bridge
+   - Assigns IP address from bridge subnet
+   - Sets up NAT rules for port mapping
 
 6. **Security Configuration**: Docker applies security policies:
-    - Drops dangerous Linux capabilities
-    - Applies AppArmor or SELinux profiles
-    - Sets up seccomp filters to limit system calls
-    - Configures user namespace mapping if enabled
+   - Drops dangerous Linux capabilities
+   - Applies AppArmor or SELinux profiles
+   - Sets up seccomp filters to limit system calls
+   - Configures user namespace mapping if enabled
 
 7. **Process Launch**: Finally, Docker:
-    - Executes the container's entrypoint/command
-    - Attaches stdin/stdout/stderr as configured
-    - Monitors the process for exit
+   - Executes the container's entrypoint/command
+   - Attaches stdin/stdout/stderr as configured
+   - Monitors the process for exit
 
 This entire process typically completes in milliseconds, which is why containers start so quickly compared to VMs.
 
@@ -508,22 +508,22 @@ docker rm -f mem-limited swap-limited cpu-limited cpu-shares oom-test
 Containers are ephemeral—when removed, their data disappears. This is problematic for databases, user uploads, or any persistent state. Docker provides three mechanisms for data persistence:
 
 1. **Named Volumes**: Docker manages these in a special directory (/var/lib/docker/volumes/ on Linux). They're the best choice for production because:
-    - Docker handles permissions and paths
-    - Easy to backup and migrate
-    - Work on all platforms consistently
-    - Can be shared between containers safely
+   - Docker handles permissions and paths
+   - Easy to backup and migrate
+   - Work on all platforms consistently
+   - Can be shared between containers safely
 
 2. **Bind Mounts**: Map host directories directly into containers. Perfect for development because:
-    - Changes on host immediately visible in container
-    - Easy to edit files with host tools
-    - Can mount source code for live reloading
-    - But: Permission issues possible, not portable
+   - Changes on host immediately visible in container
+   - Easy to edit files with host tools
+   - Can mount source code for live reloading
+   - But: Permission issues possible, not portable
 
 3. **tmpfs Mounts**: Exist only in memory, never touch disk. Ideal for:
-    - Sensitive data (passwords, keys)
-    - Temporary cache files
-    - Performance-critical temporary data
-    - But: Data lost when container stops
+   - Sensitive data (passwords, keys)
+   - Temporary cache files
+   - Performance-critical temporary data
+   - But: Data lost when container stops
 
 ### Working with Named Volumes
 

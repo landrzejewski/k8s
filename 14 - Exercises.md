@@ -1,5 +1,3 @@
-# 14 - Exercises
-
 ### Task 1: Basic Namespace and Pod Creation
 
 Create a namespace called "development" and deploy a pod named "web-server" running nginx:latest in that namespace. Verify the pod is running and accessible.

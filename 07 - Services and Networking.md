@@ -1,3 +1,4 @@
+
 ## Understanding Kubernetes Networking
 
 ### The Foundation of Cluster Communication
@@ -274,7 +275,7 @@ Important considerations:
 
 ## Workshop: Services and Networking
 
-This workshop provides hands-on experience with Kubernetes Services and networking concepts.
+This workshop provides hands-on experience with Kubernetes Services and networking concepts. 
 
 ## Service Types and Port Configuration
 

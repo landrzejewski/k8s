@@ -1,4 +1,3 @@
-# 11 - Deployment Strategies and Autoscaling
 
 ## Blue/Green Deployment Fundamentals
 
@@ -1279,83 +1278,6 @@ kubectl logs -f job/load-tester
 
 # After test completes, analyze scaling behavior
 kubectl describe hpa php-apache
-```
-
-### Custom Metrics HPA
-
-For production applications, CPU and memory often aren't enough. Let's implement HPA with custom metrics:
-
-```yaml
-# custom-metrics-app.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: custom-metrics-app
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: custom-app
-  template:
-    metadata:
-      labels:
-        app: custom-app
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
-        prometheus.io/path: "/metrics"
-    spec:
-      containers:
-      - name: app
-        image: cosmintitei/bash-curl
-        command: ["/bin/sh"]
-        args:
-        - -c
-        - |
-          # Simulate an app that exposes custom metrics
-          while true; do
-            # Simulate varying queue depth
-            QUEUE_DEPTH=$((RANDOM % 100))
-            
-            # Create a simple HTTP server that returns metrics
-            echo -e "HTTP/1.1 200 OK\n\n# HELP queue_depth Current queue depth\n# TYPE queue_depth gauge\nqueue_depth $QUEUE_DEPTH" | nc -l -p 8080 -q 1
-          done
-        ports:
-        - containerPort: 8080
-          name: metrics
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
----
-# HPA using custom metrics (requires Prometheus Adapter)
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: custom-metrics-hpa
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: custom-metrics-app
-  minReplicas: 1
-  maxReplicas: 10
-  metrics:
-  # Scale based on custom metric (queue depth)
-  - type: Pods
-    pods:
-      metric:
-        name: queue_depth
-      target:
-        type: AverageValue
-        averageValue: "30"
-  # Combine with resource metrics
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
 ```
 
 ## Vertical Pod Autoscaler (VPA)

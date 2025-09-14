@@ -1,5 +1,3 @@
-# 15 - Useful Links
-
 ## Docker
 
 - [Docker CLI Reference](https://docs.docker.com/reference/cli/docker) – Complete guide to Docker commands and usage.

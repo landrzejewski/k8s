@@ -1,7 +1,7 @@
-# 00 - Training cluster installation guide
 ## VirtualBox Configuration
 
-- Disable Hyper-V (execute from PowerShell)
+- Disable Hyper-V on Windows if necessary (execute from PowerShell)
+
 ```bash
 bcdedit /set hypervisorlaunchtype off
 ```

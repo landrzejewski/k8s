@@ -1,3 +1,4 @@
+
 ## Understanding Ingress
 
 ### The External Access Challenge
@@ -63,10 +64,10 @@ spec:
         app: nginx
     spec:
       containers:
-        - name: nginx
-          image: nginx:1.25-alpine
-          ports:
-            - containerPort: 80
+      - name: nginx
+        image: nginx:1.25-alpine
+        ports:
+        - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -77,9 +78,9 @@ spec:
   selector:
     app: nginx
   ports:
-    - port: 80
-      targetPort: 80
-      protocol: TCP
+  - port: 80
+    targetPort: 80
+    protocol: TCP
   type: ClusterIP
 ```
 
@@ -108,16 +109,16 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: example.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: nginx-service
-                port:
-                  number: 80
+  - host: example.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
 ```
 
 Apply and test the Ingress:
@@ -151,23 +152,23 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: app.local
-      http:
-        paths:
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: api-service
-                port:
-                  number: 80
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: web-service
-                port:
-                  number: 80
+  - host: app.local
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-service
+            port:
+              number: 80
 ```
 
 ### Host-Based Routing
@@ -184,26 +185,26 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: app1.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: app1-service
-                port:
-                  number: 80
-    - host: app2.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: app2-service
-                port:
-                  number: 80
+  - host: app1.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app1-service
+            port:
+              number: 80
+  - host: app2.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app2-service
+            port:
+              number: 80
 ```
 
 ### HTTPS/TLS Configuration
@@ -233,20 +234,20 @@ metadata:
 spec:
   ingressClassName: nginx
   tls:
-    - hosts:
-        - example.local
-      secretName: example-tls
+  - hosts:
+    - example.local
+    secretName: example-tls
   rules:
-    - host: example.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: nginx-service
-                port:
-                  number: 80
+  - host: example.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
 ```
 
 Test HTTPS:
@@ -282,16 +283,16 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: app.local
-      http:
-        paths:
-          - path: /app
-            pathType: Prefix
-            backend:
-              service:
-                name: nginx-service
-                port:
-                  number: 80
+  - host: app.local
+    http:
+      paths:
+      - path: /app
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
 ```
 
 With this configuration:
@@ -317,23 +318,23 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: app.local
-      http:
-        paths:
-          - path: /api(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: api-service
-                port:
-                  number: 80
-          - path: /web(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: web-service
-                port:
-                  number: 80
+  - host: app.local
+    http:
+      paths:
+      - path: /api(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 80
+      - path: /web(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: web-service
+            port:
+              number: 80
 ```
 
 This configuration:
@@ -449,10 +450,10 @@ spec:
         app: hello
     spec:
       containers:
-        - name: nginx
-          image: nginx:1.25-alpine
-          ports:
-            - containerPort: 80
+      - name: nginx
+        image: nginx:1.25-alpine
+        ports:
+        - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -463,9 +464,9 @@ spec:
   selector:
     app: hello
   ports:
-    - port: 80
-      targetPort: 80
-      protocol: TCP
+  - port: 80
+    targetPort: 80
+    protocol: TCP
 ```
 
 ```bash
@@ -490,12 +491,12 @@ metadata:
 spec:
   gatewayClassName: nginx
   listeners:
-    - name: http
-      port: 80
-      protocol: HTTP
-      allowedRoutes:
-        namespaces:
-          from: Same
+  - name: http
+    port: 80
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: Same
 ```
 
 ```bash
@@ -520,18 +521,18 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-    - name: example-gateway
-      namespace: default
+  - name: example-gateway
+    namespace: default
   hostnames:
-    - "hello.example.com"
+  - "hello.example.com"
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: hello-service
-          port: 80
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: hello-service
+      port: 80
 ```
 
 ```bash
@@ -567,24 +568,24 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-    - name: example-gateway
+  - name: example-gateway
   hostnames:
-    - "app.example.com"
+  - "app.example.com"
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api
-      backendRefs:
-        - name: api-service
-          port: 80
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: web-service
-          port: 80
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api
+    backendRefs:
+    - name: api-service
+      port: 80
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: web-service
+      port: 80
 ```
 
 ### Traffic Splitting with Gateway API
@@ -600,21 +601,21 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-    - name: example-gateway
+  - name: example-gateway
   hostnames:
-    - "split.example.com"
+  - "split.example.com"
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: service-v1
-          port: 80
-          weight: 90  # 90% of traffic
-        - name: service-v2
-          port: 80
-          weight: 10  # 10% of traffic
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: service-v1
+      port: 80
+      weight: 90  # 90% of traffic
+    - name: service-v2
+      port: 80
+      weight: 10  # 10% of traffic
 ```
 
 ## When to Use Ingress vs Gateway API

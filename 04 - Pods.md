@@ -199,7 +199,7 @@ spec:
       failureThreshold: 3
 ```
 
-For more complex readiness checks that require executing commands, you can use exec probes.
+For more complex readiness checks that require executing commands, you can use exec probes. 
 
 ### Understanding Startup Probes
 

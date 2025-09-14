@@ -1,4 +1,3 @@
-# 10 - Configuration Management
 
 ## Understanding Configuration Management Philosophy
 
