@@ -418,6 +418,54 @@ kubectl get pods  # should fail
 # Return to admin
 ADMIN_CONTEXT=$(kubectl config view --minify -o jsonpath='{.current-context}')
 kubectl config use-context "$ADMIN_CONTEXT"
+
+cat <<EOF | kubectl apply -f -
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: training
+  name: pod-reader
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get", "list"]
+EOF 
+
+cat <<EOF | kubectl apply -f -
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jane-pod-reader
+  namespace: training
+subjects:
+- kind: User
+  name: jane
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+EOF
+
+kubectl get role -n training
+kubectl get rolebinding -n training
+kubectl describe rolebinding jane-pod-reader -n training
+
+kubectl get pods -n training
+
+kubectl config use-context jane-context
+
+kubectl get pods -n training
+kubectl get pods -n training -o wide
+kubectl logs deployment/nginx-test -n training
+
+kubectl get pods -n default
+
+kubectl config use-context "$ADMIN_CONTEXT"
+
 ```
 
 ### Method 2: Service Accounts (for automation)
