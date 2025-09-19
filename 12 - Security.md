@@ -419,6 +419,8 @@ kubectl get pods  # should fail
 ADMIN_CONTEXT=$(kubectl config view --minify -o jsonpath='{.current-context}')
 kubectl config use-context "$ADMIN_CONTEXT"
 
+# Give jane access to pods
+
 cat <<EOF | kubectl apply -f -
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
