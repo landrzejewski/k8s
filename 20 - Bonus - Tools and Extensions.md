@@ -430,11 +430,11 @@ By default, CRI-O only accepts **HTTPS** registries. For testing with **HTTP**, 
 Edit `/etc/containers/registries.conf` (or a file in `/etc/containers/registries.conf.d/`):
 
 ```toml
-unqualified-search-registries = ["docker.io"]
+unqualified-search-registries = ["harbor.local:443", "docker.io"]
 
 [[registry]]
-prefix = "harbor.local:8080"
-location = "harbor.local:8080"
+prefix = "harbor.local:443"
+location = "harbor.local:443"
 insecure = true
 blocked = false
 ```
