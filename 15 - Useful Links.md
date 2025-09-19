@@ -24,7 +24,7 @@
 
 - [killer.sh](https://killer.sh) – Interactive Kubernetes certification practice exams.
 - [k8s-issues.purutuladhar.com](https://k8s-issues.purutuladhar.com/) – Troubleshooting Kubernetes issues.
-- [Google Drive File](https://drive.google.com/file/d/1BHSlE5acais0D1KDUU3nNUzbB1bQehfb/view?usp=drive_link) – VirtualBox image with a preconfigured Kubernetes cluster for hands-on practice.
+- [Google Drive File](https://drive.google.com/file/d/1OkF-WL3NtgY3OVIDK7B15yUdFyidv1Bt/view?usp=drive_link) – VirtualBox image with a preconfigured Kubernetes cluster for hands-on practice.
 
 ---
 
