@@ -73,24 +73,24 @@ swapoff -a
 ```bash
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 ```
-- Install Kubernetes tools and CRI-O
+- Install Kubernetes tools and CRI-O https://github.com/cri-o/packaging?tab=readme-ov-file
 ```bash
 apt-get update
 apt-get install -y software-properties-common
 
-KUBERNETES_VERSION=v1.32
-CRIO_VERSION=v1.32
+KUBERNETES_VERSION=v1.34
+CRIO_VERSION=v1.34
 
 curl -fsSL https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key |
     gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/ /" |
     tee /etc/apt/sources.list.d/kubernetes.list
-
-curl -fsSL https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/Release.key |
+    
+curl -fsSL https://download.opensuse.org/repositories/isv:/cri-o:/stable:/$CRIO_VERSION/deb/Release.key |
     gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
 
-echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/ /" |
+echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/$CRIO_VERSION/deb/ /" |
     tee /etc/apt/sources.list.d/cri-o.list
     
 apt-get update
